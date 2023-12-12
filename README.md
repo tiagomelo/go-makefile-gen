@@ -1,5 +1,7 @@
 # go-makefile-gen
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/tiagomelo/go-makefile-gen.svg)](https://pkg.go.dev/github.com/tiagomelo/go-makefile-gen)
+
 ![logo](go-makefile-gen.png)
 
 A simple utility tool for generating a [Makefile](https://en.wikipedia.org/wiki/Make_(software)#Makefiles) to your [Go](https://go.dev/) project. It also offers the ability of adding a new target to a given [Makefile](https://en.wikipedia.org/wiki/Make_(software)#Makefiles).
@@ -7,7 +9,7 @@ A simple utility tool for generating a [Makefile](https://en.wikipedia.org/wiki/
 ## installation
 
 ```
-go install github.com/tiagomelo/go-makefile-gen/cmd/gomakefile@v0.1.2
+go install github.com/tiagomelo/go-makefile-gen/cmd/gomakefile@v0.1.3
 ```
 
 It will be installed into `bin` directory of your `$GOPATH` env.
