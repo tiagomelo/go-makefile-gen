@@ -7,10 +7,20 @@ A simple utility tool for generating a [Makefile](https://en.wikipedia.org/wiki/
 ## installation
 
 ```
-go install github.com/tiagomelo/go-makefile-gen
+go install github.com/tiagomelo/go-makefile-gen/cmd/gomakefile@v0.1.2
+```
+
+It will be installed into `bin` directory of your `$GOPATH` env.
+
+```
+go env | grep GOPATH
 ```
 
 ## usage
+
+To be able to call `gomakefile` without specifing the full path to `$GOPATH/bin`, remember to add it to your path.
+
+e.g. `export PATH="$GOPATH/bin:$PATH"`
 
 ### creating a `Makefile`
 
