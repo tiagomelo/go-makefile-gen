@@ -42,10 +42,16 @@ test:
 coverage:
 	@ go test -coverprofile=coverage.out ./...  && go tool cover -html=coverage.out
 `
-	addTargetTemplate = `.PHONY: {{ .TargetName }}
+	addTargetTemplate = `
+.PHONY: {{ .TargetName }}
 ## {{ .TargetName }}: explain what {{ .TargetName }} does
 {{ .TargetName }}:
-
+`
+	addTargetWithContentTemplate = `
+.PHONY: {{ .TargetName }}
+## {{ .TargetName }}: explain what {{ .TargetName }} does
+{{ .TargetName }}:
+	{{ .TargetContent }}
 `
 	makefileName = "Makefile" // Default name for the Makefile.
 )
@@ -85,6 +91,33 @@ func AddTargetToMakefile(path, targetName string) error {
 		return errors.Wrap(err, "parsing template")
 	}
 	err = tmplExecutor.Execute(file, map[string]string{"TargetName": targetName})
+	if err != nil {
+		return errors.Wrap(err, "executing template")
+	}
+	return nil
+}
+
+// AddTargetWithContentToMakefile appends a custom target to a Makefile,
+// with the specified content.
+// It ensures that the target name does not contain spaces and uses
+// template processing to format the target addition.
+func AddTargetWithContentToMakefile(path, targetName, targetContent string) error {
+	if containsSpace(targetName) {
+		return errors.New("target name cannot contain space")
+	}
+	file, err := fsProvider.OpenFile(mkFilePath(path), os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return errors.Wrapf(err, "opening %s", path)
+	}
+	defer file.Close()
+	tmplExecutor, err := templateProcessorProvider.Parse("target", addTargetWithContentTemplate)
+	if err != nil {
+		return errors.Wrap(err, "parsing template")
+	}
+	err = tmplExecutor.Execute(file, map[string]string{
+		"TargetName":    targetName,
+		"TargetContent": targetContent,
+	})
 	if err != nil {
 		return errors.Wrap(err, "executing template")
 	}
