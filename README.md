@@ -82,6 +82,29 @@ You can also specify the path for the existing `Makefile` you want to add the ta
 gomakefile addtarget -t "my-new-target" -p <path/to/Makefile>
 ```
 
+### adding a new target with content to a `Makefile`
+
+```
+gomakefile addtarget -t "my-new-target" -c $'@ do it\n\t@ do that\n\t@ echo "ok"'
+```
+
+It adds the desired target to the `Makefile` that is present in the currenty directory:
+
+```
+.PHONY: my-new-target
+## my-new-target: explain what my-new-target does
+my-new-target:
+	@ do it
+	@ do that
+	@ echo "ok"
+```
+
+You can also specify the path for the existing `Makefile` you want to add the target to:
+
+```
+gomakefile addtarget -t "my-new-target" -p <path/to/Makefile>
+```
+
 ## unit tests
 
 ```
