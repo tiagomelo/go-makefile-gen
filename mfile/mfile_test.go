@@ -18,12 +18,19 @@ func TestGenerateMakefile(t *testing.T) {
 	testCases := []struct {
 		name          string
 		mockClosure   func(m *mockFileSystem)
+		overwrite     bool
 		expectedError error
 	}{
 		{
 			name: "happy path",
 			mockClosure: func(m *mockFileSystem) {
 			},
+		},
+		{
+			name: "happy path, overwrite",
+			mockClosure: func(m *mockFileSystem) {
+			},
+			overwrite: true,
 		},
 		{
 			name: "happy path, is directory",
@@ -64,7 +71,7 @@ func TestGenerateMakefile(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.mockClosure(m)
 			fsProvider = m
-			err := GenerateMakefile("some/path")
+			err := GenerateMakefile("some/path", tc.overwrite)
 			if err != nil {
 				if tc.expectedError == nil {
 					t.Fatalf("expected no error, got %v", err)

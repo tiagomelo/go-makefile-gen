@@ -56,6 +56,12 @@ You can also specify the desired path for it:
 gomakefile generate -p <path/to/Makefile>
 ```
 
+### overwriting an existing `Makefile`
+
+```
+gomakefile generate -o true
+```
+
 ### adding a new target to a `Makefile`
 
 ```

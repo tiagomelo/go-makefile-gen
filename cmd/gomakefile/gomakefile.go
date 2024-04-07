@@ -15,12 +15,13 @@ import (
 
 // GenerateCommand is used to generate a Makefile
 type GenerateCommand struct {
-	MakefilePath string `short:"p" long:"path" description:"Path to the Makefile" default:"."`
+	MakefilePath              string `short:"p" long:"path" description:"Path to the Makefile" default:"."`
+	OverwriteExistingMakefile bool   `short:"o" long:"overwrite" description:"Overwrite existing Makefile"`
 }
 
 // Execute is the method invoked for the generate command
 func (g *GenerateCommand) Execute(args []string) error {
-	if err := mfile.GenerateMakefile(g.MakefilePath); err != nil {
+	if err := mfile.GenerateMakefile(g.MakefilePath, g.OverwriteExistingMakefile); err != nil {
 		return err
 	}
 	absPath, err := absPath(g.MakefilePath)
@@ -65,8 +66,17 @@ func absPath(path string) (string, error) {
 func main() {
 	var opts Options
 	parser := flags.NewParser(&opts, flags.Default)
-	_, err := parser.Parse()
-	if err != nil {
-		os.Exit(1)
+	if _, err := parser.Parse(); err != nil {
+		switch flagsErr := err.(type) {
+		case flags.ErrorType:
+			if flagsErr == flags.ErrHelp {
+				fmt.Println(err)
+				os.Exit(0)
+			}
+			fmt.Println(err)
+			os.Exit(1)
+		default:
+			os.Exit(1)
+		}
 	}
 }

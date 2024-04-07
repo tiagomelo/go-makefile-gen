@@ -41,7 +41,6 @@ test:
 ## coverage: run unit tests and generate coverage report in html format
 coverage:
 	@ go test -coverprofile=coverage.out ./...  && go tool cover -html=coverage.out
-
 `
 	addTargetTemplate = `.PHONY: {{ .TargetName }}
 ## {{ .TargetName }}: explain what {{ .TargetName }} does
@@ -52,16 +51,18 @@ coverage:
 )
 
 // GenerateMakefile creates or updates a Makefile at the specified path.
-// It adds a default template to the Makefile.
-func GenerateMakefile(path string) error {
+// If `overwrite`, the existing Makefile will be overwritten.
+func GenerateMakefile(path string, overwrite bool) error {
 	makeFilePath := mkFilePath(path)
-	existingContent, err := fsProvider.ReadFile(makeFilePath)
-	if err != nil && !fsProvider.IsNotExist(err) {
-		return errors.Wrapf(err, "reading Makefile at %s", makeFilePath)
+	content := generateTemplate
+	if !overwrite {
+		existingContent, err := fsProvider.ReadFile(makeFilePath)
+		if err != nil && !fsProvider.IsNotExist(err) {
+			return errors.Wrapf(err, "reading Makefile at %s", makeFilePath)
+		}
+		content = generateTemplate + string(existingContent)
 	}
-	newContent := generateTemplate + string(existingContent)
-	err = fsProvider.WriteFile(makeFilePath, []byte(newContent), 0644)
-	if err != nil {
+	if err := fsProvider.WriteFile(makeFilePath, []byte(content), 0644); err != nil {
 		return errors.Wrapf(err, "writing MakeFile at %s", makeFilePath)
 	}
 	return nil
