@@ -5,8 +5,8 @@
 package mfile
 
 import (
-	"html/template"
 	"io"
+	"text/template"
 )
 
 // templateExecutor interface abstracts the execution of a parsed template.

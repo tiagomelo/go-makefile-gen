@@ -34,12 +34,19 @@ func (g *GenerateCommand) Execute(args []string) error {
 
 // AddTargetCommand is used to add a target to the Makefile
 type AddTargetCommand struct {
-	TargetName   string `short:"t" long:"target" description:"Name of the target" required:"true"`
-	MakefilePath string `short:"p" long:"path" description:"Path to the Makefile" default:"."`
+	TargetName    string `short:"t" long:"target" description:"Name of the target" required:"true"`
+	TargetContent string `short:"c" long:"targetContent" description:"Content of the target"`
+	MakefilePath  string `short:"p" long:"path" description:"Path to the Makefile" default:"."`
 }
 
 // Execute is the method invoked for the addtarget command
 func (a *AddTargetCommand) Execute(args []string) error {
+	if a.TargetContent != "" {
+		if err := mfile.AddTargetWithContentToMakefile(a.MakefilePath, a.TargetName, a.TargetContent); err != nil {
+			return err
+		}
+		return nil
+	}
 	if err := mfile.AddTargetToMakefile(a.MakefilePath, a.TargetName); err != nil {
 		return err
 	}
@@ -76,6 +83,7 @@ func main() {
 			fmt.Println(err)
 			os.Exit(1)
 		default:
+			fmt.Println(err)
 			os.Exit(1)
 		}
 	}
