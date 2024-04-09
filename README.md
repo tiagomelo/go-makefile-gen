@@ -102,7 +102,49 @@ my-new-target:
 You can also specify the path for the existing `Makefile` you want to add the target to:
 
 ```
-gomakefile addtarget -t "my-new-target" -p <path/to/Makefile>
+gomakefile addtarget -t "my-new-target" -p <path/to/Makefile> -c $'@ do it\n\t@ do that\n\t@ echo "ok"'
+```
+
+### adding a new target with dependencies to a `Makefile`
+
+```
+gomakefile addtarget -t "my-new-target" -d target-one -d target-two
+```
+
+It adds the desired target to the `Makefile` that is present in the currenty directory:
+
+```
+.PHONY: my-new-target
+## my-new-target: explain what my-new-target does
+my-new-target: target-one target-two
+
+```
+
+You can also specify the path for the existing `Makefile` you want to add the target to:
+
+```
+gomakefile addtarget -t "my-new-target" -d target-one -d target-two -p <path/to/Makefile>
+```
+
+### adding a new target with content and dependencies to a `Makefile`
+
+```
+gomakefile addtarget -t "my-new-target" -d target-one -d target-two -c '@ echo "ok"'
+```
+
+It adds the desired target to the `Makefile` that is present in the currenty directory:
+
+```
+.PHONY: my-new-target
+## my-new-target: explain what my-new-target does
+my-new-target: target-one target-two
+	@ echo "ok"
+```
+
+You can also specify the path for the existing `Makefile` you want to add the target to:
+
+```
+gomakefile addtarget -t "my-new-target" -d target-one -d target-two -c '@ echo "ok"' -p <path/to/Makefile>
 ```
 
 ## using it in your Go code
@@ -204,6 +246,59 @@ func main() {
 	targetName := "my-target"
 	targetContent := `@ do it\n\t@ do that\n\t@ echo "ok"`
 	if err := mfile.AddTargetWithContentToMakefile(makeFilePath, targetName, targetContent); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+```
+
+### adding a new target with dependencies to a `Makefile`
+
+[examples/addtarget/withdependencies/main.go](./examples/addtarget/withdependencies/main.go)
+
+```
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/tiagomelo/go-makefile-gen/mfile"
+)
+
+func main() {
+	const makeFilePath = "."
+	targetName := "my-target"
+	targetDependencies := []string{"target-one", "target-two"}
+	if err := mfile.AddTargetWithDependenciesToMakefile(makeFilePath, targetName, targetDependencies); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+```
+
+### adding a new target with content and dependencies to a `Makefile`
+
+[examples/addtarget/withdependencies/withcontent/main.go](./examples/addtarget/withdependencies/withcontent/main.go)
+
+```
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/tiagomelo/go-makefile-gen/mfile"
+)
+
+func main() {
+	const makeFilePath = "."
+	targetName := "my-target"
+	targetDependencies := []string{"target-one", "target-two"}
+	targetContent := `@ do it\n\t@ do that\n\t@ echo "ok"`
+	if err := mfile.AddTargetWithContentAndDependenciesToMakefile(makeFilePath, targetName, targetContent, targetDependencies); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
