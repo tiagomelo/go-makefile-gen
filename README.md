@@ -18,7 +18,7 @@ It will be installed into `bin` directory of your `$GOPATH` env.
 go env | grep GOPATH
 ```
 
-## usage
+## CLI usage
 
 To be able to call `gomakefile` without specifing the full path to `$GOPATH/bin`, remember to add it to your path.
 
@@ -103,6 +103,112 @@ You can also specify the path for the existing `Makefile` you want to add the ta
 
 ```
 gomakefile addtarget -t "my-new-target" -p <path/to/Makefile>
+```
+
+## using it in your Go code
+
+```
+go get github.com/tiagomelo/go-makefile-gen
+```
+
+### creating a `Makefile`
+
+[examples/create/main.go](./examples/create/main.go)
+
+```
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/tiagomelo/go-makefile-gen/mfile"
+)
+
+func main() {
+	const makeFilePath = "."
+	// Pass false if you don't want to overwrite the existing Makefile.
+	if err := mfile.GenerateMakefile(makeFilePath, false); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+```
+
+### overwriting an existing `Makefile`
+
+[examples/create/main.go](./examples/create/main.go)
+
+```
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/tiagomelo/go-makefile-gen/mfile"
+)
+
+func main() {
+	const makeFilePath = "."
+	// Pass false if you don't want to overwrite the existing Makefile.
+	if err := mfile.GenerateMakefile(makeFilePath, true); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+```
+
+### adding a new target to a `Makefile`
+
+[examples/addtarget/main.go](./examples/addtarget/main.go)
+
+```
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/tiagomelo/go-makefile-gen/mfile"
+)
+
+func main() {
+	const makeFilePath = "."
+	targetName := "my-target"
+	if err := mfile.AddTargetToMakefile(makeFilePath, targetName); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+```
+
+### adding a new target with content to a `Makefile`
+
+[examples/addtarget/withcontent/main.go](./examples/addtarget/withcontent/main.go)
+
+```
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/tiagomelo/go-makefile-gen/mfile"
+)
+
+func main() {
+	const makeFilePath = "."
+	targetName := "my-target"
+	targetContent := `@ do it\n\t@ do that\n\t@ echo "ok"`
+	if err := mfile.AddTargetWithContentToMakefile(makeFilePath, targetName, targetContent); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
 ```
 
 ## unit tests
