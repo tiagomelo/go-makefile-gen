@@ -34,15 +34,28 @@ func (g *GenerateCommand) Execute(args []string) error {
 
 // AddTargetCommand is used to add a target to the Makefile
 type AddTargetCommand struct {
-	TargetName    string `short:"t" long:"target" description:"Name of the target" required:"true"`
-	TargetContent string `short:"c" long:"targetContent" description:"Content of the target"`
-	MakefilePath  string `short:"p" long:"path" description:"Path to the Makefile" default:"."`
+	TargetName         string   `short:"t" long:"target" description:"Name of the target" required:"true"`
+	TargetContent      string   `short:"c" long:"targetContent" description:"Content of the target"`
+	TargetDependencies []string `short:"d" long:"targetDependencies" description:"Target dependencies"`
+	MakefilePath       string   `short:"p" long:"path" description:"Path to the Makefile" default:"."`
 }
 
 // Execute is the method invoked for the addtarget command
 func (a *AddTargetCommand) Execute(args []string) error {
+	if a.TargetContent != "" && len(a.TargetDependencies) > 0 {
+		if err := mfile.AddTargetWithContentAndDependenciesToMakefile(a.MakefilePath, a.TargetName, a.TargetContent, a.TargetDependencies); err != nil {
+			return err
+		}
+		return nil
+	}
 	if a.TargetContent != "" {
 		if err := mfile.AddTargetWithContentToMakefile(a.MakefilePath, a.TargetName, a.TargetContent); err != nil {
+			return err
+		}
+		return nil
+	}
+	if len(a.TargetDependencies) > 0 {
+		if err := mfile.AddTargetWithDependenciesToMakefile(a.MakefilePath, a.TargetName, a.TargetDependencies); err != nil {
 			return err
 		}
 		return nil
@@ -83,7 +96,6 @@ func main() {
 			fmt.Println(err)
 			os.Exit(1)
 		default:
-			fmt.Println(err)
 			os.Exit(1)
 		}
 	}

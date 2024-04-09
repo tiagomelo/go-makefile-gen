@@ -47,6 +47,17 @@ coverage:
 ## {{ .TargetName }}: explain what {{ .TargetName }} does
 {{ .TargetName }}:
 `
+	addTargetWithDependenciesTemplate = `
+.PHONY: {{ .TargetName }}
+## {{ .TargetName }}: explain what {{ .TargetName }} does
+{{ .TargetName }}: {{ .TargetDependencies }}
+`
+	addTargetWithContentAndDependenciesTemplate = `
+.PHONY: {{ .TargetName }}
+## {{ .TargetName }}: explain what {{ .TargetName }} does
+{{ .TargetName }}: {{ .TargetDependencies }}
+	{{ .TargetContent }}
+`
 	addTargetWithContentTemplate = `
 .PHONY: {{ .TargetName }}
 ## {{ .TargetName }}: explain what {{ .TargetName }} does
@@ -117,6 +128,71 @@ func AddTargetWithContentToMakefile(path, targetName, targetContent string) erro
 	err = tmplExecutor.Execute(file, map[string]string{
 		"TargetName":    targetName,
 		"TargetContent": targetContent,
+	})
+	if err != nil {
+		return errors.Wrap(err, "executing template")
+	}
+	return nil
+}
+
+// AddTargetWithDependenciesToMakefile appends a custom target to a Makefile,
+// with the specified dependencies.
+// It ensures that the target name does not contain spaces and uses
+// template processing to format the target addition.
+func AddTargetWithDependenciesToMakefile(path, targetName string, targetDependencies []string) error {
+	if containsSpace(targetName) {
+		return errors.New("target name cannot contain space")
+	}
+	for _, td := range targetDependencies {
+		if containsSpace(td) {
+			return errors.New("target dependency name cannot contain space")
+		}
+	}
+	file, err := fsProvider.OpenFile(mkFilePath(path), os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return errors.Wrapf(err, "opening %s", path)
+	}
+	defer file.Close()
+	tmplExecutor, err := templateProcessorProvider.Parse("target", addTargetWithDependenciesTemplate)
+	if err != nil {
+		return errors.Wrap(err, "parsing template")
+	}
+	err = tmplExecutor.Execute(file, map[string]string{
+		"TargetName":         targetName,
+		"TargetDependencies": strings.Join(targetDependencies, " "),
+	})
+	if err != nil {
+		return errors.Wrap(err, "executing template")
+	}
+	return nil
+}
+
+// AddTargetWithContentAndDependenciesToMakefile appends a custom target to a Makefile,
+// with the specified content and dependencies.
+// It ensures that the target name does not contain spaces and uses
+// template processing to format the target addition.
+func AddTargetWithContentAndDependenciesToMakefile(path, targetName, targetContent string, targetDependencies []string) error {
+	if containsSpace(targetName) {
+		return errors.New("target name cannot contain space")
+	}
+	for _, td := range targetDependencies {
+		if containsSpace(td) {
+			return errors.New("target dependency name cannot contain space")
+		}
+	}
+	file, err := fsProvider.OpenFile(mkFilePath(path), os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return errors.Wrapf(err, "opening %s", path)
+	}
+	defer file.Close()
+	tmplExecutor, err := templateProcessorProvider.Parse("target", addTargetWithContentAndDependenciesTemplate)
+	if err != nil {
+		return errors.Wrap(err, "parsing template")
+	}
+	err = tmplExecutor.Execute(file, map[string]string{
+		"TargetName":         targetName,
+		"TargetDependencies": strings.Join(targetDependencies, " "),
+		"TargetContent":      targetContent,
 	})
 	if err != nil {
 		return errors.Wrap(err, "executing template")

@@ -241,6 +241,193 @@ func TestAddTargetWithContentToMakefile(t *testing.T) {
 	}
 }
 
+func TestAddTargetWithDependenciesToMakefile(t *testing.T) {
+	testCases := []struct {
+		name               string
+		targetName         string
+		targetDependencies []string
+		mockClosure        func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor)
+		expectedError      error
+	}{
+		{
+			name:               "happy path",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			mockClosure:        func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {},
+		},
+		{
+			name:               "happy path, is directory",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			mockClosure: func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {
+				mfs.isDirOutput = true
+			},
+		},
+		{
+			name:               "target name has space",
+			targetName:         "test target",
+			targetDependencies: []string{"target-dependency"},
+			mockClosure:        func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {},
+			expectedError:      errors.New("target name cannot contain space"),
+		},
+		{
+			name:               "target dependency name has space",
+			targetName:         "test-target",
+			targetDependencies: []string{"target dependency"},
+			mockClosure:        func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {},
+			expectedError:      errors.New("target dependency name cannot contain space"),
+		},
+		{
+			name:               "error when opening file",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			mockClosure: func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {
+				mfs.openErr = errors.New("open error")
+			},
+			expectedError: errors.New("opening path/to/Makefile: open error"),
+		},
+		{
+			name:               "error when parsing template",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			mockClosure: func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {
+				mtp.err = errors.New("parse error")
+			},
+			expectedError: errors.New("parsing template: parse error"),
+		},
+		{
+			name:               "error when executing template",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			mockClosure: func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {
+				mte.err = errors.New("execute error")
+			},
+			expectedError: errors.New("executing template: execute error"),
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mfs := new(mockFileSystem)
+			mtp := new(mockTemplateProcessor)
+			mte := new(mockTemplateExecutor)
+			mtp.te = mte
+			t.Run(tc.name, func(t *testing.T) {
+				tc.mockClosure(mfs, mtp, mte)
+				fsProvider = mfs
+				templateProcessorProvider = mtp
+				err := AddTargetWithDependenciesToMakefile("path/to/Makefile", tc.targetName, tc.targetDependencies)
+				if err != nil {
+					if tc.expectedError == nil {
+						t.Fatalf("expected no error, got %v", err)
+					}
+					require.Equal(t, tc.expectedError.Error(), err.Error())
+				} else {
+					if tc.expectedError != nil {
+						t.Fatalf("expected error to be %v, got nil", tc.expectedError)
+					}
+				}
+			})
+		})
+	}
+}
+
+func TestAddTargetWithContentAndDependenciesToMakefile(t *testing.T) {
+	testCases := []struct {
+		name               string
+		targetName         string
+		targetDependencies []string
+		targetContent      string
+		mockClosure        func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor)
+		expectedError      error
+	}{
+		{
+			name:               "happy path",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			targetContent:      "@ do something",
+			mockClosure:        func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {},
+		},
+		{
+			name:               "happy path, is directory",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			targetContent:      "@ do something",
+			mockClosure: func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {
+				mfs.isDirOutput = true
+			},
+		},
+		{
+			name:               "target name has space",
+			targetName:         "test target",
+			targetDependencies: []string{"target-dependency"},
+			targetContent:      "@ do something",
+			mockClosure:        func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {},
+			expectedError:      errors.New("target name cannot contain space"),
+		},
+		{
+			name:               "target dependency name has space",
+			targetName:         "test-target",
+			targetDependencies: []string{"target dependency"},
+			mockClosure:        func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {},
+			expectedError:      errors.New("target dependency name cannot contain space"),
+		},
+		{
+			name:               "error when opening file",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			targetContent:      "@ do something",
+			mockClosure: func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {
+				mfs.openErr = errors.New("open error")
+			},
+			expectedError: errors.New("opening path/to/Makefile: open error"),
+		},
+		{
+			name:               "error when parsing template",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			targetContent:      "@ do something",
+			mockClosure: func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {
+				mtp.err = errors.New("parse error")
+			},
+			expectedError: errors.New("parsing template: parse error"),
+		},
+		{
+			name:               "error when executing template",
+			targetName:         "test-target",
+			targetDependencies: []string{"target-dependency"},
+			targetContent:      "@ do something",
+			mockClosure: func(mfs *mockFileSystem, mtp *mockTemplateProcessor, mte *mockTemplateExecutor) {
+				mte.err = errors.New("execute error")
+			},
+			expectedError: errors.New("executing template: execute error"),
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mfs := new(mockFileSystem)
+			mtp := new(mockTemplateProcessor)
+			mte := new(mockTemplateExecutor)
+			mtp.te = mte
+			t.Run(tc.name, func(t *testing.T) {
+				tc.mockClosure(mfs, mtp, mte)
+				fsProvider = mfs
+				templateProcessorProvider = mtp
+				err := AddTargetWithContentAndDependenciesToMakefile("path/to/Makefile", tc.targetName, tc.targetContent, tc.targetDependencies)
+				if err != nil {
+					if tc.expectedError == nil {
+						t.Fatalf("expected no error, got %v", err)
+					}
+					require.Equal(t, tc.expectedError.Error(), err.Error())
+				} else {
+					if tc.expectedError != nil {
+						t.Fatalf("expected error to be %v, got nil", tc.expectedError)
+					}
+				}
+			})
+		})
+	}
+}
+
 type mockFileSystem struct {
 	openFile         *os.File
 	fileInfo         os.FileInfo
